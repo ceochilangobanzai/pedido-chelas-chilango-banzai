@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pedido de chelas - Cervecería Chilango Banzai</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #111111; color: #F2E6C9; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 48px; }
+  .card { background: #222222; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.5); margin-bottom: 16px; }
+  h1 { font-size: 24px; margin: 0 0 4px; color: #A8D8C8; }
+  .sub { color: #CCCCCC; margin: 0 0 12px; line-height: 1.45; }
+  h2 { font-size: 17px; margin: 0 0 12px; color: #A8D8C8; }
+  .beer { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #444; }
+  .beer:last-child { border-bottom: none; }
+  .beer b { display: block; font-size: 16px; }
+  .beer span { color: #CCCCCC; font-size: 13px; }
+  .qty { display: flex; align-items: center; gap: 10px; }
+  .qty button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #A8D8C8; background: #222222; color: #A8D8C8; font-size: 20px; cursor: pointer; }
+  .qty output { min-width: 24px; text-align: center; font-size: 18px; font-weight: bold; }
+  label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 14px; }
+  input[type=text], input[type=tel], textarea, select { width: 100%; padding: 12px; border: 1px solid #555; border-radius: 10px; font-size: 16px; font-family: inherit; background: #333333; color: #F2E6C9; }
+  textarea { min-height: 64px; resize: vertical; }
+  .pay label { display: flex; gap: 8px; align-items: center; font-weight: 400; margin: 8px 0; }
+  .total-row { display: flex; justify-content: space-between; padding: 6px 0; }
+  .total-row.grand { font-size: 20px; font-weight: bold; border-top: 2px solid #A8D8C8; margin-top: 8px; padding-top: 12px; }
+  .note { background: #3A3320; color: #F2E6C9; border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.45; }
+  .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; background: #A8D8C8; color: #111111; font-size: 18px; font-weight: bold; cursor: pointer; }
+  .btn:disabled { opacity: .6; cursor: wait; }
+  .hidden { display: none; }
+  .ok { text-align: center; padding: 24px 0; }
+  .ok h2 { font-size: 22px; }
+  .err { background: #FDE8E8; color: #7A1F1F; border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
+  .preview { max-width: 100%; border-radius: 10px; margin-top: 8px; }
+  .stock { font-weight: bold; color: #A8D8C8; }
+  .stock.out { color: #B3261E; }
+  .qty button:disabled { opacity: .35; cursor: not-allowed; }
+  .hero { width: 100%; border-radius: 16px 16px 0 0; display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="hero" src="header.png" alt="Cuatro cervezas de Chilango Banzai">
+  <div class="card">
+    <h1>Pedido de chelas</h1>
+    <p class="sub"><b>Cervecería Chilango Banzai</b> — Cerveza artesanal, CDMX.<br>
+    Elige tus cervezas y el total se calcula solo. Entrega en <b>3 días hábiles</b>.</p>
+    <div class="note">$ <b>$95</b> por cerveza. Si pides <b>6 o más</b>, quedan en <b>$75</b> cada una.<br>Envío: <b>$150</b>.</div>
+  </div>
+
+  <form id="form" onsubmit="return false;">
+    <div class="card">
+      <h2>Tus cervezas</h2>
+      <div class="beer"><div><b>Kashberry</b><span>Cream Ale con frambuesa</span><span class="stock" id="s-Kashberry">Disponible: —</span></div><div class="qty"><button type="button" data-beer="Kashberry" data-d="-1">−</button><output id="q-Kashberry">0</output><button type="button" data-beer="Kashberry" data-d="1">+</button></div></div>
+      <div class="beer"><div><b>Mishcoalt</b><span>Porter con café canela y vainilla</span><span class="stock" id="s-Mishcoalt">Disponible: —</span></div><div class="qty"><button type="button" data-beer="Mishcoalt" data-d="-1">−</button><output id="q-Mishcoalt">0</output><button type="button" data-beer="Mishcoalt" data-d="1">+</button></div></div>
+      <div class="beer"><div><b>Juliete</b><span>Altbier</span><span class="stock" id="s-Juliete">Disponible: —</span></div><div class="qty"><button type="button" data-beer="Juliete" data-d="-1">−</button><output id="q-Juliete">0</output><button type="button" data-beer="Juliete" data-d="1">+</button></div></div>
+      <div class="beer"><div><b>Sleepy Cat</b><span>Blond ale</span><span class="stock" id="s-SleepyCat">Disponible: —</span></div><div class="qty"><button type="button" data-beer="SleepyCat" data-d="-1">−</button><output id="q-SleepyCat">0</output><button type="button" data-beer="SleepyCat" data-d="1">+</button></div></div>
+      <p class="sub" id="stockNote" style="margin:12px 0 0;">Cargando disponibilidad…</p>
+    </div>
+
+    <div class="card">
+      <h2>Tu pedido</h2>
+      <div id="lines"></div>
+      <div class="total-row"><span>Precio por cerveza</span><span id="t-unit">$95</span></div>
+      <div class="total-row"><span>Subtotal</span><span id="t-sub">$0</span></div>
+      <div class="total-row"><span>Envío</span><span>$150</span></div>
+      <div class="total-row grand"><span>Total a pagar</span><span id="t-total">$150</span></div>
+      <p class="sub" style="margin:10px 0 0;">Fecha estimada de entrega: <b id="t-delivery">—</b></p>
+    </div>
+
+    <div class="card">
+      <h2>Tus datos</h2>
+      <label for="nombre">Nombre de quien recoge *</label>
+      <input type="text" id="nombre" required>
+      <label for="telefono">Número de teléfono (WhatsApp) *</label>
+      <input type="tel" id="telefono" required>
+      <label for="direccion">Dirección de entrega *</label>
+      <textarea id="direccion" required></textarea>
+      <label>Método de pago *</label>
+      <div class="pay">
+        <label><input type="radio" name="metodo" value="Efectivo a contraentrega" checked> Efectivo a contraentrega</label>
+        <label><input type="radio" name="metodo" value="Depósito o transferencia"> Depósito o transferencia</label>
+        <label><input type="radio" name="metodo" value="Tarjeta débito o crédito"> Tarjeta débito o crédito</label>
+      </div>
+      <div id="proofBox" class="hidden">
+        <div class="note" style="margin-bottom:12px;"><b>Datos para tu transferencia:</b><br>
+        Banco: <b>BBVA</b><br>
+        Cuenta: <b>150 122 8395</b><br>
+        CLABE: <b>012 180 01501228395 4</b><br>
+        Nombre: <b>Rodrigo Olivares Solís</b><br>
+        Monto a transferir: <b id="t-transfer">$150</b></div>
+        <label for="proof">Comprobante de pago (foto) *</label>
+        <input type="file" id="proof" accept="image/*">
+        <img id="preview" class="preview hidden" alt="Comprobante">
+        <p class="sub">Sube la foto de tu comprobante de transferencia.</p>
+      </div>
+    </div>
+
+    <button class="btn" id="submitBtn" type="button">Enviar pedido</button>
+    <div id="error" class="err hidden"></div>
+  </form>
+
+  <div id="success" class="card ok hidden">
+    <h2>¡Pedido recibido!</h2>
+    <p id="successText"></p>
+    <p class="sub">Te confirmaremos por WhatsApp. Gracias por pedir en Chilango Banzai.</p>
+  </div>
+</div>
+
+<script>
+const qty = { Kashberry: 0, Mishcoalt: 0, Juliete: 0, SleepyCat: 0 };
+const labels = { Kashberry: 'Kashberry', Mishcoalt: 'Mishcoalt', Juliete: 'Juliete', SleepyCat: 'Sleepy Cat' };
+const available = { Kashberry: 0, Mishcoalt: 0, Juliete: 0, 'Sleepy Cat': 0 };
+function renderStock() {
+  Object.keys(qty).forEach(k => {
+    const avail = available[labels[k]] || 0;
+    const el = document.getElementById('s-' + k);
+    el.textContent = avail > 0 ? 'Disponible: ' + avail : 'Agotado';
+    el.classList.toggle('out', avail <= 0);
+  });
+  const any = Object.values(available).some(v => v > 0);
+  document.getElementById('stockNote').textContent = any
+    ? 'Solo puedes pedir hasta la cantidad disponible de cada cerveza.'
+    : 'Por el momento no hay cervezas disponibles. En cuanto actualicemos el inventario podrás pedir.';
+  document.getElementById('submitBtn').disabled = !any;
+}
+const API_URL = 'https://script.google.com/macros/s/AKfycbyTWbkNCh4NdmU3DOrWOnQR_F9eL9wkJVW81t2ABJSLfr86mGjjbN5kAuTw_s9DFbktOA/exec';
+function loadStock() {
+  fetch(API_URL + '?action=inventory')
+    .then(r => r.json())
+    .then(data => { if (data && data.inventory) { Object.assign(available, data.inventory); renderStock(); update(); } else { throw new Error('sin inventario'); } })
+    .catch(() => { document.getElementById('stockNote').textContent = 'No se pudo cargar la disponibilidad. Inténtalo de nuevo.'; });
+}
+function businessDays(date, days) {
+  const d = new Date(date); let added = 0;
+  while (added < days) { d.setDate(d.getDate() + 1); const day = d.getDay(); if (day !== 0 && day !== 6) added++; }
+  return d;
+}
+function fmt(d) { return d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+function update() {
+  const total = qty.Kashberry + qty.Mishcoalt + qty.Juliete + qty.SleepyCat;
+  const unit = total >= 6 ? 75 : 95;
+  const sub = total * unit;
+  const grand = sub + 150;
+  document.getElementById('t-unit').textContent = '$' + unit;
+  document.getElementById('t-sub').textContent = '$' + sub;
+  document.getElementById('t-total').textContent = '$' + grand;
+  document.getElementById('t-transfer').textContent = '$' + grand;
+  document.getElementById('t-delivery').textContent = fmt(businessDays(new Date(), 3));
+  const lines = document.getElementById('lines');
+  lines.innerHTML = total === 0
+    ? '<p class="sub">Aún no elegiste cervezas.</p>'
+    : Object.keys(qty).filter(k => qty[k] > 0).map(k =>
+        '<div class="total-row"><span>' + labels[k] + ' × ' + qty[k] + '</span><span>$' + (qty[k] * unit) + '</span></div>').join('');
+}
+document.querySelectorAll('.qty button').forEach(b => {
+  b.addEventListener('click', () => {
+    const k = b.dataset.beer;
+    const max = available[labels[k]] || 0;
+    qty[k] = Math.max(0, Math.min(max, qty[k] + parseInt(b.dataset.d, 10)));
+    document.getElementById('q-' + k).textContent = qty[k];
+    update();
+  });
+});
+document.querySelectorAll('input[name=metodo]').forEach(r => {
+  r.addEventListener('change', () => {
+    document.getElementById('proofBox').classList.toggle('hidden', r.value !== 'Depósito o transferencia' || !r.checked);
+  });
+});
+document.getElementById('proof').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = document.getElementById('preview');
+  img.src = URL.createObjectURL(f);
+  img.classList.remove('hidden');
+});
+document.getElementById('submitBtn').addEventListener('click', () => {
+  const err = document.getElementById('error');
+  err.classList.add('hidden');
+  const total = qty.Kashberry + qty.Mishcoalt + qty.Juliete + qty.SleepyCat;
+  if (total === 0) { err.textContent = 'Elige al menos una cerveza.'; err.classList.remove('hidden'); return; }
+  const nombre = document.getElementById('nombre').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const direccion = document.getElementById('direccion').value.trim();
+  if (!nombre || !telefono || !direccion) { err.textContent = 'Faltan nombre, teléfono o dirección.'; err.classList.remove('hidden'); return; }
+  const metodo = document.querySelector('input[name=metodo]:checked').value;
+  const file = document.getElementById('proof').files[0];
+  if (metodo === 'Depósito o transferencia' && !file) { err.textContent = 'Sube la foto de tu comprobante.'; err.classList.remove('hidden'); return; }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  const send = (proof) => {
+    const payload = { nombre, telefono, direccion, metodo, Kashberry: qty.Kashberry, Mishcoalt: qty.Mishcoalt, Juliete: qty.Juliete, SleepyCat: qty.SleepyCat, proof };
+    fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+      .then(r => r.json())
+      .then(res => {
+        if (!res || res.ok === false) throw new Error(res && res.error ? res.error : 'No se pudo enviar');
+        document.getElementById('form').classList.add('hidden');
+        const s = document.getElementById('success');
+        s.classList.remove('hidden');
+        document.getElementById('successText').innerHTML =
+          '<b>' + res.totalBeers + ' cervezas — Total: $' + res.total + '</b><br>Entrega estimada: <b>' + res.delivery + '</b>' +
+          (res.metodo === 'Tarjeta débito o crédito' ? '<br>Te escribiremos para enviarte el link de pago.' : '') +
+          (res.metodo === 'Depósito o transferencia' ? '<br>Verificaremos tu comprobante.' : '');
+        window.scrollTo(0, 0);
+      })
+      .catch(e => {
+        err.textContent = 'No se pudo enviar: ' + (e && e.message ? e.message : e);
+        err.classList.remove('hidden');
+        btn.disabled = false; btn.textContent = 'Enviar pedido';
+      });
+  };
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => send({ name: file.name, mimeType: file.type, base64: reader.result.split(',')[1] });
+    reader.readAsDataURL(file);
+  } else {
+    send(null);
+  }
+});
+update();
+loadStock();
+</script>
+</body>
+</html>
